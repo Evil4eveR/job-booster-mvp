@@ -1,0 +1,134 @@
+name: CI - Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: "20"
+  BUN_VERSION: "latest"
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .next/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run ESLint
+        run: bun run lint
+
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .next/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: bun run db:generate
+        env:
+          DATABASE_URL: file:./db/ci-test.db
+
+      - name: Build application
+        run: bun run build
+        env:
+          DATABASE_URL: file:./db/ci-test.db
+          PAYPAL_CLIENT_ID: ""
+          PAYPAL_CLIENT_SECRET: ""
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check for vulnerable dependencies
+        run: bun audit || true
+        continue-on-error: true
+
+      - name: Check for exposed secrets
+        run: |
+          # Check for common secret patterns in source files
+          echo "Checking for exposed secrets..."
+          ! grep -rn "sk_live\|sk_test\|AKIA\|AIza" src/ --include="*.ts" --include="*.tsx" || (echo "ERROR: Potential secrets found in source code!" && exit 1)
+          ! grep -rn "PAYPAL_CLIENT_SECRET=" . --include="*.ts" --include="*.tsx" --exclude-dir=node_modules || (echo "ERROR: PayPal secret might be hardcoded!" && exit 1)
+          echo "No exposed secrets detected."
+
+  prisma:
+    name: Database Schema Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate Prisma schema
+        run: bunx prisma validate
+        env:
+          DATABASE_URL: file:./db/ci-test.db
+
+      - name: Check Prisma format
+        run: bunx prisma format --check || true
+        continue-on-error: true
+
+      - name: Generate Prisma client
+        run: bunx prisma generate
+        env:
+          DATABASE_URL: file:./db/ci-test.db

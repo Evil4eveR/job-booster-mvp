@@ -1,0 +1,40 @@
+// Job Booster MVP - Prisma Schema
+// Stores application data and payment records
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Stores a generated job application bundle
+model Application {
+  id             String   @id @default(cuid())
+  cvText         String   // Extracted or pasted CV text
+  jobDescription String   // Target job description
+  inputLanguage  String   // Detected or selected CV language
+  coverLetter    String?  // Generated German cover letter
+  cvKeywords     String?  // Generated CV keyword optimization
+  atsSuggestions String?  // ATS optimization suggestions
+  generatedCv    String?  // Optional generated CV draft
+  paymentStatus  String   @default("pending") // pending | paid | failed
+  paypalOrderId  String?  @unique // PayPal order ID for verification
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// Tracks PayPal payment transactions
+model Payment {
+  id              String   @id @default(cuid())
+  paypalOrderId   String   @unique // PayPal order ID
+  paypalCaptureId String?  // PayPal capture ID after payment
+  status          String   @default("created") // created | approved | captured | failed
+  amount          String   // Payment amount (e.g., "4.99")
+  currency        String   @default("EUR")
+  applicationId   String?  // Link to application after generation
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

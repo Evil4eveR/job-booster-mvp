@@ -1,12 +1,15 @@
 /**
  * POST /api/download
- * 
+ *
  * Downloads generated application documents as TXT.
- * Content is provided in the request body (no database dependency).
- * PDF generation is handled client-side using browser print-to-PDF.
+ * Uses the pdfExport service for formatting.
+ * Validates with Zod schema before processing.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { buildTxtDocument } from '@/lib/services/pdfExport.service';
+import { downloadRequestSchema } from '@/lib/validators/schemas';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,78 +23,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build the full document content
-    const fullContent = buildDocumentContent(content);
+    // Validate with Zod
+    const validation = downloadRequestSchema.safeParse({ content, format });
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, error: validation.error.issues[0]?.message || 'Invalid request' },
+        { status: 400 }
+      );
+    }
 
-    // Return as plain text file
+    const fullContent = buildTxtDocument(content);
+
     return new NextResponse(fullContent, {
       status: 200,
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
-        'Content-Disposition': `attachment; filename="bewerbung-bundle.txt"`,
+        'Content-Disposition': 'attachment; filename="bewerbung-bundle.txt"',
       },
     });
   } catch (error) {
-    console.error('[Download API Error]:', error);
+    logger.error('Download API error', 'DownloadAPI', {
+      error: error instanceof Error ? error.message : 'Unknown',
+    });
     const message = error instanceof Error ? error.message : 'Failed to generate download';
     return NextResponse.json(
       { success: false, error: message },
       { status: 500 }
     );
   }
-}
-
-/**
- * Build the full document content from application data
- */
-function buildDocumentContent(app: {
-  coverLetter?: string | null;
-  cvKeywords?: string | null;
-  atsSuggestions?: string | null;
-  generatedCv?: string | null;
-}): string {
-  const sections: string[] = [];
-
-  sections.push('═══════════════════════════════════════════════════');
-  sections.push('  BEWERBUNGGENIE - German Application Bundle');
-  sections.push('═══════════════════════════════════════════════════');
-  sections.push('');
-
-  if (app.coverLetter) {
-    sections.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    sections.push('  ANSCHREIBEN (GERMAN COVER LETTER)');
-    sections.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    sections.push('');
-    sections.push(app.coverLetter);
-    sections.push('');
-  }
-
-  if (app.cvKeywords) {
-    sections.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    sections.push('  LEBENSLAUFLISTE (CV KEYWORD OPTIMIZATION)');
-    sections.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    sections.push('');
-    sections.push(app.cvKeywords);
-    sections.push('');
-  }
-
-  if (app.atsSuggestions) {
-    sections.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    sections.push('  ATS-OPTIMIERUNG (ATS OPTIMIZATION SUGGESTIONS)');
-    sections.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    sections.push('');
-    sections.push(app.atsSuggestions);
-    sections.push('');
-  }
-
-  if (app.generatedCv) {
-    sections.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    sections.push('  LEBENSLAUF-ENTWURF (GENERATED CV DRAFT)');
-    sections.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    sections.push('');
-    sections.push(app.generatedCv);
-    sections.push('');
-  }
-
-  return sections.join('\n');
 }

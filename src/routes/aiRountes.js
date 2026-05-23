@@ -241,51 +241,70 @@ router.get('/download/pdf/:docType/:trackingId', async (req, res) => {
       <html>
       <head>
         <meta charset="utf-8">
-        <title>Anschreiben Blueprint</title>
+        <title>Anschreiben</title>
         <style>
-          @page { size: A4; margin: 0; }
-          body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; }
+          /* Define absolute A4 print constraints */
+          @page { 
+            size: A4; 
+            margin: 20mm 20mm 20mm 25mm; /* DIN 5008 standard: 25mm left margin for folding/binding */
+          }
+          body { 
+            background: white; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Times New Roman', Times, serif;
+            -webkit-print-color-adjust: exact; 
+          }
+          p {
+            text-align: justify;
+            line-height: 1.6;
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #1e293b;
+          }
         </style>
       </head>
       <body>
-        <div style="width: 595px; height: 842px; padding: 50px 50px 50px 55px; font-family: 'Times New Roman', Times, serif; box-sizing: border-box; position: relative; background: white;">
+        <div style="position: absolute; top: -20mm; left: -25mm; right: -20mm; height: 4px; background-color: #4f46e5;"></div>
+        
+        <div style="width: 100%; box-sizing: border-box; padding-top: 10mm;">
           
-          <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background-color: #4f46e5;"></div>
-          
-          <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 24px; font-family: sans-serif;">
+          <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 32px; font-family: sans-serif;">
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="vertical-align: top;">
-                  <h2 style="font-size: 16px; font-weight: 700; text-transform: uppercase; margin: 0; color: #0f172a;">${cl.senderName || 'Your Name'}</h2>
-                  <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">${cl.senderContact || ''}</p>
+                  <h2 style="font-size: 18px; font-weight: 700; text-transform: uppercase; margin: 0; color: #0f172a; letter-spacing: -0.02em;">${cl.senderName || 'Your Name'}</h2>
+                  <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0; font-family: sans-serif;">${cl.senderContact || ''}</p>
                 </td>
-                <td style="text-align: right; font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; vertical-align: top; padding-top: 4px;">
+                <td style="text-align: right; font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; vertical-align: top; padding-top: 6px;">
                   DIN 5008 Layout
                 </td>
               </tr>
             </table>
           </div>
 
-          <div style="margin-bottom: 32px; font-family: sans-serif; font-size: 12px; color: #334155;">
-            <span style="font-size: 9px; font-weight: 700; color: #6366f1; text-transform: uppercase; display: block; margin-bottom: 4px;">Empfänger</span>
-            <div style="font-weight: 500; color: #0f172a; background-color: #f8fafc; border-left: 2px solid #cbd5e1; padding: 10px; font-style: italic;">
+          <div style="margin-bottom: 35mm; font-family: sans-serif; font-size: 12px; color: #334155;">
+            <span style="font-size: 9px; font-weight: 700; color: #6366f1; text-transform: uppercase; display: block; margin-bottom: 6px; letter-spacing: 0.05em;">Empfänger</span>
+            <div style="font-weight: 500; color: #0f172a; background-color: #f8fafc; border-left: 3px solid #cbd5e1; padding: 12px; font-style: italic; width: 85mm;">
               ${cl.recipientCompany || 'Target Company Name'}
             </div>
           </div>
 
-          <div style="margin-bottom: 20px;">
-            <h3 style="font-size: 14px; font-weight: 700; color: #0f172a; font-family: sans-serif; margin: 0;">
+          <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 15px; font-weight: 700; color: #0f172a; font-family: sans-serif; margin: 0; letter-spacing: -0.01em;">
               ${cl.subjectLine || 'Bewerbung'}
             </h3>
           </div>
 
-          <div style="margin-top: 12px;">
-            <p style="font-size: 14px; font-weight: 700; color: #0f172a; font-family: sans-serif; margin-bottom: 12px;">${cl.salutation || 'Sehr geehrte Damen und Herren,'}</p>
+          <div style="margin-top: 16px;">
+            <p style="font-family: sans-serif; font-weight: 700; color: #0f172a; margin-bottom: 16px;">${cl.salutation || 'Sehr geehrte Damen und Herren,'}</p>
             <div>${bodyParagraphsHTML}</div>
-            <div style="margin-top: 34px; font-family: sans-serif;">
+            
+            <div style="margin-top: 40px; font-family: sans-serif;">
               <p style="font-size: 14px; color: #1e293b; margin: 0;">Mit freundlichen Grüßen</p>
-              <div style="margin-top: 40px;">
-                <p style="font-size: 14px; font-weight: 700; color: #0f172a; border-top: 1px solid #e2e8f0; padding-top: 4px; display: inline-block; min-width: 140px;">${cl.senderName || ''}</p>
+              <div style="margin-top: 48px;">
+                <p style="font-size: 14px; font-weight: 700; color: #0f172a; border-top: 1px solid #cbd5e1; padding-top: 6px; display: inline-block; min-width: 160px;">${cl.senderName || ''}</p>
               </div>
             </div>
           </div>
@@ -294,7 +313,7 @@ router.get('/download/pdf/:docType/:trackingId', async (req, res) => {
       </body>
       </html>
     `;
-
+    
     // Generate buffer from our clean service
     const pdfBuffer = await pdfService.generateA4Buffer(targetHtml);
 

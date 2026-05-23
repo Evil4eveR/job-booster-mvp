@@ -23,7 +23,7 @@ COPY package*.json ./
 # 🚀 Keeps Puppeteer from trying to download its own copy during npm install
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # 4. Install only production dependencies cleanly to keep the image compact
 RUN npm ci

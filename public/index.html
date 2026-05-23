@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobBooster MVP AI</title>
+  <!-- Load unified production-ready Tailwind directly -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Load live PayPal Smart Buttons SDK framework template -->
+  <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
+</head>
+<body class="h-full text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Core Scaffold Wrap -->
+  <div class="min-h-full flex flex-col justify-between">
+    
+    <!-- Top Global Header Menu -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+      <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <span class="text-xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">JOBBOOSTER AI</span>
+          <span class="bg-indigo-500/10 text-indigo-400 text-xs px-2 py-0.5 rounded-full border border-indigo-500/20 font-mono">MVP v1.0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Processing Application Container space -->
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-10">
+      <div id="notification-zone" class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+      <!-- Processing Form Section -->
+      <section id="input-view" class="space-y-8 animate-fade-in">
+        <div class="text-center max-w-2xl mx-auto space-y-3">
+          <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl text-white">Land your target tech job in Germany.</h1>
+          <p class="text-slate-400 text-lg">Generate bespoke German cover letters, contextual keywords adjustments, and deep ATS tracking optimization files instantly.</p>
+        </div>
+
+        <form id="generator-form" class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 md:p-8 shadow-xl space-y-8">
+          
+          <!-- Toggle input choice style layout -->
+          <div class="space-y-3">
+            <label class="text-sm font-semibold tracking-wide uppercase text-slate-400">Choose Profile Entry Method</label>
+            <div class="grid grid-cols-2 gap-4">
+              <button type="button" id="toggle-upload-btn" class="py-3 px-4 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 font-medium text-white transition">
+                📄 Fast File Upload
+              </button>
+              <button type="button" id="toggle-manual-btn" class="py-3 px-4 rounded-xl border border-slate-700 bg-slate-800/50 font-medium text-slate-400 hover:text-white hover:border-slate-600 transition">
+                ✍️ Manual Form Input
+              </button>
+            </div>
+          </div>
+
+          <!-- Component File Area Box Wrapper -->
+          <div id="upload-wrapper-box" class="space-y-2">
+            <label class="block text-sm font-medium text-slate-300">Upload Current CV / Resume</label>
+            <div id="drop-zone" class="border-2 border-dashed border-slate-600 hover:border-indigo-500 rounded-xl p-8 text-center bg-slate-900/40 transition cursor-pointer group">
+              <input type="file" id="file-input" class="hidden" accept=".pdf,.docx,.txt">
+              <div class="space-y-2 pointer-events-none">
+                <p class="text-base text-slate-300 group-hover:text-white transition">Drag and drop your file here, or <span class="text-indigo-400 font-semibold underline">browse</span></p>
+                <p class="text-xs text-slate-500">Supports PDF, DOCX, or TXT up to 5MB total sizing parameters</p>
+              </div>
+              <div id="file-badge" class="hidden mt-3 inline-flex items-center space-x-2 bg-indigo-500/20 text-indigo-300 text-xs px-3 py-1 rounded-md border border-indigo-500/30">
+                <span id="file-badge-name">filename.pdf</span>
+                <button type="button" id="remove-file-btn" class="text-slate-400 hover:text-red-400 font-bold ml-1">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Component Manual Input Box Layout -->
+          <div id="manual-input-box" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 border border-slate-700/50 bg-slate-900/30 p-5 rounded-xl">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Full Name</label>
+                <input type="text" id="manual-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Email Address</label>
+                <input type="email" id="manual-email" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Address/Location</label>
+                <input type="text" id="manual-address" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500" placeholder="e.g. Berlin, Germany">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Professional Profile Links</label>
+                <input type="text" id="manual-github" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs mb-2" placeholder="GitHub URL">
+                <input type="text" id="manual-linkedin" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs" placeholder="LinkedIn URL">
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Core Tech Skills</label>
+                <textarea id="manual-skills" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. Node.js, Python, Docker, AWS"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Professional Experience Summary</label>
+                <textarea id="manual-experience" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="Positions held, responsibilities, accomplishments..."></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Education Background</label>
+                <input type="text" id="manual-education" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="Degree, Institution, Graduation Year">
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuration target forms blocks grid row parameters setup -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="md:col-span-3 space-y-2">
+              <label class="block text-sm font-medium text-slate-300">Target German Job Description (Paste Text)</label>
+              <textarea id="job-desc" rows="6" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition text-sm" placeholder="Paste the complete text content of the German vacancy announcement position rules..."></textarea>
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-slate-300">CV Language Rule</label>
+              <select id="lang-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                <option value="">⚙️ Auto-Detect Core</option>
+                <option value="English">English</option>
+                <option value="German">Deutsch (German)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Master Processing Core Run Action Buttons Grid -->
+          <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg shadow-indigo-500/20 flex items-center justify-center space-x-3 text-lg">
+            <span>🚀 Engine Optimizer Pipeline Process</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Advanced System Loading Frame Context Overlay Wrapper UI Layout elements view -->
+      <section id="loading-view" class="hidden min-h-[400px] flex flex-col items-center justify-center space-y-4 animate-fade-in">
+        <div class="relative w-20 h-20">
+          <div class="absolute inset-0 border-4 border-indigo-500/20 rounded-full"></div>
+          <div class="absolute inset-0 border-4 border-t-indigo-500 rounded-full animate-spin"></div>
+        </div>
+        <p class="text-xl font-medium text-slate-200 animate-pulse">Running advanced AI engineering models analysis framework pipeline sequence...</p>
+        <p class="text-xs text-slate-500 font-mono tracking-wider">EST TIME: ~5-12 SECONDS</p>
+      </section>
+
+      <!-- Complete Post Processing Conversion Gate Dashboard Panel UI Wrapper elements structure -->
+      <section id="results-view" class="hidden space-y-8 animate-fade-in">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-5 gap-4">
+          <div>
+            <h2 class="text-3xl font-extrabold text-white">Analysis & Parsing Outputs Matrix</h2>
+            <p class="text-slate-400 text-sm">Review profile tracking context matching values below before unlocking documents extraction layout options.</p>
+          </div>
+          <button id="reset-app-btn" class="text-xs text-slate-400 hover:text-white px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-800 transition">
+            ← Reset Matrix / Parse Alternative File
+          </button>
+        </div>
+
+        <!-- Open Preview Grid Layout Area Box Details elements components items structure visual blocks -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-2 space-y-6">
+            <!-- App Preview box wrapper -->
+            <div class="bg-slate-800/40 border border-slate-700/80 rounded-xl p-5 space-y-3">
+              <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span>Anschreiben (Cover Letter Cover Text View Window)</span>
+                <span class="text-xs text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 lowercase">partial view</span>
+              </h3>
+              <div id="preview-text-pane" class="bg-slate-900/80 rounded-lg p-4 font-mono text-xs text-slate-300 leading-relaxed max-h-40 overflow-hidden relative select-none">
+                <!-- Data maps dynamically here -->
+                <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-900 to-transparent"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <!-- Track Info Elements Parameters items components blocks layout maps -->
+            <div class="bg-slate-800/40 border border-slate-700/80 rounded-xl p-5 space-y-4">
+              <div>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Target Keywords Identified</h4>
+                <div id="preview-keywords-tags" class="flex flex-wrap gap-1.5"></div>
+              </div>
+              <hr class="border-slate-700/60">
+              <div>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">ATS Tracking Compliance Guidelines</h4>
+                <ul id="preview-ats-bullets" class="space-y-1.5 text-xs text-slate-300 list-disc list-inside"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Checkout Gate Pay Box Container UI Module components overlay structure content maps -->
+        <div id="checkout-pay-lock-pane" class="bg-gradient-to-br from-indigo-900/50 to-slate-900 border-2 border-indigo-500/40 rounded-2xl p-6 md:p-8 text-center max-w-xl mx-auto space-y-6 shadow-2xl relative overflow-hidden">
+          <div class="space-y-2">
+            <span class="inline-flex bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest animate-pulse">Unlock System Framework Pack</span>
+            <h3 class="text-2xl font-black text-white">Extract Your Production Output Files</h3>
+            <p class="text-slate-300 text-sm max-w-md mx-auto">Access complete professionally formatted German cover letter documentation forms and tailored CV structured copy configurations files layouts now.</p>
+          </div>
+          <div class="text-3xl font-black text-white py-1">€4.99 <span class="text-xs text-slate-400 font-normal">one-time secure processing flat authorization</span></div>
+          
+          <!-- Live mounting anchor reference for PayPal smart modules rendering code engine -->
+          <div id="paypal-button-container" class="max-w-xs mx-auto"></div>
+        </div>
+
+        <!-- Complete System Success Document Manager Layout panel UI box structure components wrapper grid row items -->
+        <div id="unlocked-download-pane" class="hidden bg-slate-800/70 border-2 border-emerald-500/40 rounded-2xl p-6 md:p-8 space-y-6 animate-fade-in">
+          <div class="flex items-center space-x-3 text-emerald-400">
+            <span class="text-2xl">✓</span>
+            <div>
+              <h3 class="text-xl font-bold text-white">Full Assets Access Unlocked</h3>
+              <p class="text-slate-400 text-xs">Download or export your optimized application assets below in clean plain text or print-ready PDF formats.</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Cover Letter Download -->
+            <div class="bg-slate-900/50 border border-slate-700 rounded-xl p-4 flex flex-col justify-between space-y-4">
+              <div>
+                <h4 class="font-bold text-white text-base">Bespoke German Cover Letter (Anschreiben)</h4>
+                <p class="text-xs text-slate-400 mt-1">Formatted perfectly under German business communication standards layout guidelines.</p>
+              </div>
+              <div class="flex gap-2">
+                <button id="dl-cl-pdf" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-3 rounded-lg text-xs transition">Download PDF</button>
+                <button id="dl-cl-txt" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 px-3 rounded-lg text-xs transition">Download TXT</button>
+              </div>
+            </div>
+
+            <!-- CV Draft Download -->
+            <div class="bg-slate-900/50 border border-slate-700 rounded-xl p-4 flex flex-col justify-between space-y-4">
+              <div>
+                <h4 class="font-bold text-white text-base">ATS Tailored Resume Layout Matrix</h4>
+                <p class="text-xs text-slate-400 mt-1">Structured keyword optimization blueprint layout ready to inject straight into your profile template structure.</p>
+              </div>
+              <div class="flex gap-2">
+                <button id="dl-cv-pdf" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-3 rounded-lg text-xs transition">Download PDF</button>
+                <button id="dl-cv-txt" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 px-3 rounded-lg text-xs transition">Download TXT</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Full Output View for verification and quick copying -->
+          <div class="mt-6 space-y-4 border-t border-slate-700 pt-6">
+            <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Full Document View</h4>
+            <div class="bg-slate-900 rounded-xl p-5 font-sans text-sm text-slate-300 whitespace-pre-wrap max-h-96 overflow-y-auto border border-slate-800" id="full-text-display-pane"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Global Layout Base footer metadata -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500 font-mono">
+      <div>JobBooster MVP AI Engine Systems Pipeline &bull; All Rights Reserved 2026</div>
+    </footer>
+  </div>
+
+  <!-- Inject runtime front logic files execution assets code structures modules -->
+  <script src="js/api.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

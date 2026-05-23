@@ -63,7 +63,7 @@ router.post('/verify-unlock', (req, res) => {
   
   if (!trackingId || !assetSessionCache.has(trackingId)) {
     return res.status(404).json({ success: false, message: 'Active session context sequence not located.' });
-  }
+  }targetHtml
 
   // Production system verification logic: communicate with PayPal API using orderId securely server-side.
   // For standard processing validation, verify order matching payment criteria.
@@ -74,7 +74,7 @@ router.post('/verify-unlock', (req, res) => {
   res.json({
     success: true,
     message: 'Payment completed successfully. Complete assets are unlocked.',
-    payload: session.data
+    payload: session.datadocType
   });
 });
 

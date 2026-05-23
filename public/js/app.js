@@ -143,23 +143,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  function renderPreviewDashboard(preview) {
-    previewTextPane.textContent = preview.coverLetterPreview;
+function renderPreviewDashboard(preview) {
+    // 1. Build a clean, multi-paragraph preview layout for the cover letter
+    const cl = preview.coverLetter;
     
+    // Joint the array of body paragraphs into spaced text blocks
+    const paragraphHTML = cl.bodyParagraphs.map(p => `<p class="mb-4 text-slate-300 leading-relaxed">${p}</p>`).join('');
+    
+    // Inject the structured layout directly into your preview viewport pane
+    previewTextPane.innerHTML = `
+      <div class="text-sm text-slate-400 mb-2">${cl.senderName} • ${cl.senderContact}</div>
+      <div class="text-sm text-slate-400 mb-4"><strong>To:</strong> ${cl.recipientCompany}</div>
+      <h3 class="text-md font-bold text-white mb-4">${cl.subjectLine}</h3>
+      <p class="mb-4 text-slate-300">${cl.salutation}</p>
+      ${paragraphHTML}
+      <p class="text-slate-300 mt-4">${cl.signOff}</p>
+      <p class="text-slate-300 font-semibold">${cl.senderName}</p>
+    `;
+    
+    // 2. Loop through and print out the matched ATS keywords
     previewKeywordsTags.innerHTML = '';
-    preview.keywords.forEach(kw => {
+    const keywordsList = preview.tailoredCV.atsKeywordsMatched || [];
+    keywordsList.forEach(kw => {
       const tag = document.createElement('span');
-      tag.className = "bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded-md border border-slate-600/50";
+      tag.className = "bg-indigo-500/10 text-indigo-400 text-xs px-2.5 py-1 rounded-md border border-indigo-500/20 font-medium";
       tag.textContent = kw;
       previewKeywordsTags.appendChild(tag);
     });
 
-    previewAtsBullets.innerHTML = '';
-    preview.atsSuggestions.forEach(sug => {
-      const li = document.createElement('li');
-      li.textContent = sug;
-      previewAtsBullets.appendChild(li);
-    });
+    // 3. Clear out old suggestions bullet container or use it to show the executive summary
+    previewAtsBullets.innerHTML = `
+      <li class="text-slate-300 list-none italic border-l-2 border-indigo-500 pl-3">
+        <strong>Target Executive Summary:</strong> ${preview.tailoredCV.summary}
+      </li>
+    `;
 
     checkoutPayLockPane.classList.remove('hidden');
     unlockedDownloadPane.classList.add('hidden');
@@ -203,22 +220,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }).render('#paypal-button-container');
   }
 
-  function revealFullUnlockedPayloadData(payload) {
+function revealFullUnlockedPayloadData(payload) {
     checkoutPayLockPane.classList.add('hidden');
     unlockedDownloadPane.classList.remove('hidden');
 
-    fullTextDisplayPane.textContent = `=== TAILORED GERMAN COVER LETTER (ANSCHREIBEN) ===\n\n${payload.coverLetter}\n\n\n=== OPTIMIZED ATS RESUME LAYOUT STRUCTURAL TRACKING BLUEPRINT ===\n\n${payload.optimizedCvDraft}`;
+    const cl = payload.coverLetter || {};
+    const cv = payload.tailoredCV || {};
 
-    // Configure explicit tracking routing hooks mappings bindings rules
+    // 1. Compile and Render the Premium Cover Letter Sheet using our separate function
+    const targetSheetContainer = document.getElementById('cover-letter-target-sheet');
+    if (targetSheetContainer) {
+      targetSheetContainer.innerHTML = compilePremiumCoverLetterHTML(cl);
+    }
+
+    // 2. Render the Right-Hand CV Blueprint Matrix Elements
+    document.getElementById('matrix-cv-name').textContent = cv.fullName || 'Candidate Profile';
+    document.getElementById('matrix-cv-title').textContent = cv.professionalTitle || 'Software Professional';
+    document.getElementById('matrix-cv-summary').textContent = cv.summary || '';
+
+    // Render Experience structural blocks dynamically
+    const expContainer = document.getElementById('matrix-cv-experience');
+    expContainer.innerHTML = '';
+    const experiences = Array.isArray(cv.tailoredExperience) ? cv.tailoredExperience : [];
+    
+    experiences.forEach(exp => {
+      const block = document.createElement('div');
+      block.className = "p-3.5 bg-slate-900/50 border border-slate-700/40 rounded-lg space-y-1.5";
+      
+      const achievementsHTML = Array.isArray(exp.achievements) 
+        ? exp.achievements.map(a => `<li class="text-xs text-slate-300 pl-1">• ${a}</li>`).join('') 
+        : '';
+
+      block.innerHTML = `
+        <div class="flex justify-between items-start">
+          <h5 class="text-sm font-bold text-white">${exp.role}</h5>
+          <span class="text-[10px] bg-slate-800 text-indigo-300 font-medium px-2 py-0.5 rounded-full border border-indigo-500/10">${exp.duration}</span>
+        </div>
+        <p class="text-xs text-slate-400">${exp.company}</p>
+        <ul class="space-y-1 mt-1.5 list-none">${achievementsHTML}</ul>
+      `;
+      expContainer.appendChild(block);
+    });
+
+    // Configure download buttons
     setupDownloadButtonsRoutingHooks(appState.currentTrackingId);
   }
 
-  function setupDownloadButtonsRoutingHooks(trackingId) {
-    document.getElementById('dl-cl-pdf').onclick = () => window.open(`/api/ai/download/pdf/coverletter/${trackingId}`, '_blank');
-    document.getElementById('dl-cl-txt').onclick = () => window.open(`/api/ai/download/txt/coverletter/${trackingId}`, '_blank');
-    document.getElementById('dl-cv-pdf').onclick = () => window.open(`/api/ai/download/pdf/cvdraft/${trackingId}`, '_blank');
-    document.getElementById('dl-cv-txt').onclick = () => window.open(`/api/ai/download/txt/cvdraft/${trackingId}`, '_blank');
-  }
+function setupDownloadButtonsRoutingHooks(trackingId) {
+  document.getElementById('dl-cl-pdf').onclick = function() {
+    window.location.href = `/api/ai/download/pdf/coverletter/${trackingId}`;
+  };
+}
 
   resetAppBtn.addEventListener('click', () => {
     form.reset();
@@ -227,4 +279,52 @@ document.addEventListener('DOMContentLoaded', () => {
     dropZone.querySelector('.space-y-2').classList.remove('hidden');
     Components.toggleView('input-view');
   });
+  function compilePremiumCoverLetterHTML(cl) {
+  const paragraphs = Array.isArray(cl.bodyParagraphs) ? cl.bodyParagraphs : [];
+  const bodyParagraphsHTML = paragraphs
+    .map(p => `<p class="text-justify leading-relaxed text-slate-800 tracking-tight font-normal mb-4 text-xs sm:text-sm">${p}</p>`)
+    .join('');
+
+  return `
+    <div class="bg-white text-slate-900 shadow-2xl rounded-sm border border-slate-200 relative mx-auto" 
+         style="width: 100%; max-width: 595px; min-height: 842px; padding: 50px 50px 50px 55px; font-family: 'Times New Roman', Times, serif; box-sizing: border-box;">
+      
+      <div class="absolute top-0 left-0 right-0 h-1 bg-indigo-600"></div>
+      
+      <div class="border-b border-slate-100 pb-3 mb-6 flex justify-between items-start">
+        <div class="space-y-0.5">
+          <h2 class="text-base font-bold tracking-wide uppercase text-slate-900 font-sans">${cl.senderName || 'Your Name'}</h2>
+          <p class="text-[11px] text-slate-500 font-sans tracking-tight">${cl.senderContact || ''}</p>
+        </div>
+        <div class="text-right font-sans text-[9px] font-bold text-slate-400 tracking-widest uppercase pt-1">
+          DIN 5008 Layout
+        </div>
+      </div>
+
+      <div class="mb-8 text-xs font-sans text-slate-700 space-y-0.5 max-w-sm">
+        <span class="text-[9px] font-bold tracking-wider text-indigo-500 uppercase block mb-1">Empfänger</span>
+        <div class="font-medium text-slate-900 bg-slate-50 border-l-2 border-slate-300 p-2.5 rounded-sm italic leading-tight">
+          ${cl.recipientCompany || 'Target Company Name'}
+        </div>
+      </div>
+
+      <div class="mb-5">
+        <h3 class="text-sm font-bold text-slate-900 font-sans tracking-tight leading-snug">
+          ${cl.subjectLine || 'Bewerbung'}
+        </h3>
+      </div>
+
+      <div class="space-y-3">
+        <p class="text-xs sm:text-sm font-bold text-slate-900 font-sans mb-3">${cl.salutation || 'Sehr geehrte Damen und Herren,'}</p>
+        <div class="font-serif">${bodyParagraphsHTML}</div>
+        <div class="pt-3 space-y-1 font-sans">
+          <p class="text-xs sm:text-sm text-slate-800">${cl.signOff || 'Mit freundlichen Grüßen'}</p>
+          <div class="pt-4">
+            <p class="text-xs sm:text-sm font-bold text-slate-900 border-t border-slate-200 pt-1 inline-block min-w-[140px]">${cl.senderName || ''}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  }
 });

@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { GoogleGenAI } from '@google/genai';
 import pdfService from '../services/pdfService.js';
+import docxService from '../services/docxService.js';
 
 const router = express.Router();
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -37,47 +38,65 @@ router.post('/generate', upload.any(), async (req, res) => {
 
     const textPrompt = `
 SYSTEM ROLE:
-You are an expert resume strategist and ATS optimization assistant.
+You are an expert German application strategist and ATS optimization assistant specializing in European recruitment standards (DIN 5008).
 
 TASK:
 Analyze:
-1. The uploaded resume
-2. The target job description
+1. The uploaded user profile/resume.
+2. The target job description.
 
-Generate:
-- a tailored professional cover letter
-- ATS keyword matches
-- actionable ATS optimization suggestions
+Generate a highly optimized professional German cover letter and localized ATS keyword mapping profile based on the strict requirements below.
+
+CRITICAL CONTENT AND GERMAN LANGUAGE RULES:
+1. DO NOT include any introductory or generic cliché openings like "Mit großem Interesse habe ich Ihre Ausschreibung gelesen". Instead, write a strong, benefit-driven introduction tailored directly to the specific role requirements (e.g., mentioning target systems like ServiceNow, Linux, or ticket tools explicitly).
+2. NEVER admit or mention low/beginner German language levels. COMPLETELY OMIT any sentence like "Obwohl meine Deutschkenntnisse derzeit auf Anfängerniveau sind...". If the role allows or requires English corporate operations, frame communication confidently (e.g., "Da die tägliche Arbeit teilweise auf Englisch stattfindet, bringe ich meine kommunikatative Stärke sofort ein, während ich meine Deutschkenntnisse aktiv ausbaue").
+3. HARDCODE measurable key achievements and IT metrics inside the professional experience body paragraphs to satisfy strict recruiter expectations (e.g., "handling 35-50 tickets/day", "achieving an 82% to 85% first-resolution rate", or "strict SLA compliance").
+4. INTEGRATE essential soft skills relevant to IT Support / Engineering naturally into the body text: structured troubleshooting, comprehensive team documentation, and clear customer-oriented communication.
+5. ENSURE the final paragraph contains clear availability and legal working status statements exactly in this style: "Ich bin ab [Date/Sofort] verfügbar und besitze eine uneingeschränkte Arbeitserlaubnis für Deutschland."
+6. THE FINAL SIGNOFF must end with a clean standard closing and a formal comma format: "Mit freundlichen Grüßen," on its own line followed immediately by the sender's full name.
+
+STRICT FORMATTING AND CLEANLINESS RULES:
+1. ABSOLUTELY FORBIDDEN: Do NOT include any markdown characters anywhere inside the string values (No hashes #, no asterisks *, no underscores _, no markdown bullet points). The text values must be completely clean raw text.
+2. REMOVE all system label headers inside the text fields like "SENDER:", "EMPFÄNGER:", or "SUBJECT:". Just provide the raw content values directly.
+3. DATA ENCODING: Output must be natively configured for perfect UTF-8 compatibility. Ensure German umlauts (ä, ö, ü, ß) render flawlessly as standard characters, not as escaped unicode sequences or broken symbols.
 
 OUTPUT LANGUAGE:
 ${language}
 
 STRICT OUTPUT RULES:
-- Return ONLY valid raw JSON matching the required schema layout exactly
-- Do NOT include any intro or outro text snippets
-- Escape all quotes correctly
+- Return ONLY valid raw JSON matching the required schema layout exactly.
+- Do NOT wrap the JSON inside markdown code blocks (\`\`\`json ... \`\`\`). Return raw text string ready for JSON.parse().
+- Do NOT include any intro or outro text snippets.
+- Escape all nested double quotes inside the text values correctly with backslashes (\\").
 
 REQUIRED JSON SCHEMA:
 {
   "coverLetter": {
     "senderName": "string",
-    "senderContact": "string (Email, Phone, Location)",
-    "recipientCompany": "string",
-    "subjectLine": "string",
-    "salutation": "string",
-    "bodyParagraphs": ["string", "string", "string"],
-    "signOff": "string"
+    "senderContact": "string (Full Address, Phone, Email formatted for top of letter)",
+    "recipientCompany": "string (Full Company Address block matching formal recipient data)",
+    "subjectLine": "string (Formal DIN 5008 line: e.g., 'Betreff: Bewerbung als Mitarbeiter im 2nd Level Support')",
+    "salutation": "string (Formal greeting matching name if verified, otherwise 'Sehr geehrte Damen und Herren,')",
+    "bodyParagraphs": [
+      "string (Strong tailored introduction containing metric-driven hook)",
+      "string (Core body focusing on technical stack alignment, SLAs, tickets, troubleshooting, and documentation achievements)",
+      "string (Final paragraph declaring immediate/custom availability, and the unrestricted German work permit statement)"
+    ],
+    "signOff": "string (Exactly 'Mit freundlichen Grüßen,')"
   },
   "tailoredCV": {
     "fullName": "string",
     "professionalTitle": "string",
-    "summary": "string",
+    "summary": "string (High-density ATS friendly tracking summary summary)",
     "tailoredExperience": [
       {
         "role": "string",
         "company": "string",
         "duration": "string",
-        "achievements": ["string", "string"]
+        "achievements": [
+          "string (Metric optimized support achievement)",
+          "string (Technical deployment or systems engineering milestone)"
+        ]
       }
     ],
     "atsKeywordsMatched": ["string"]
@@ -97,6 +116,9 @@ ${jobDescription}
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: aiContents,
+      config: {
+        responseMimeType: "application/json" // يجبر الذكاء الاصطناعي على إرجاع JSON سليم 100% بدون أي Markdown أو أخطاء هروب
+      }
     });
 
     let rawText = response.text.trim();
@@ -165,53 +187,45 @@ router.post('/verify-unlock', (req, res) => {
 });
 
 // ==========================================
-// 3. DOWNLOAD TEXT ENDPOINT
+// 3. DOWNLOAD PREMIUM DOCX ENDPOINT (New Word Export replacing old TXT)
 // ==========================================
-router.get('/download/txt/:docType/:trackingId', (req, res) => {
+router.get('/download/docx/:docType/:trackingId', async (req, res) => {
   const { docType, trackingId } = req.params;
-  console.log(`📥 Download requested for document type: ${docType}, ID: ${trackingId}`);
+  console.log(`📥 Premium DOCX compilation triggered for Type: ${docType}, ID: ${trackingId}`);
 
   const savedDoc = memoryStorage[trackingId];
   if (!savedDoc) {
-    return res.status(404).send("Document not found or expired.");
+    return res.status(404).send("Document assets session expired or not found.");
   }
 
-  let textToSend = "";
-  let filename = "";
-
   try {
-    if (docType === 'coverletter') {
-      const cl = savedDoc.coverLetter || {};
-      const bodyParagraphs = Array.isArray(cl.bodyParagraphs) ? cl.bodyParagraphs : [];
-      
-      textToSend = `${cl.senderName || ''}\n${cl.senderContact || ''}\n\nTo:\n${cl.recipientCompany || ''}\n\nSubject: ${cl.subjectLine || ''}\n\n${cl.salutation || ''}\n\n${bodyParagraphs.join('\n\n')}\n\n${cl.signOff || ''}\n${cl.senderName || ''}`;
-      filename = 'Anschreiben.txt';
-    } else {
-      const cv = savedDoc.tailoredCV || {};
-      const tailoredExperience = Array.isArray(cv.tailoredExperience) ? cv.tailoredExperience : [];
-      const atsKeywordsMatched = Array.isArray(cv.atsKeywordsMatched) ? cv.atsKeywordsMatched : [];
+    let docxBuffer;
+    let filename = "";
 
-      const experienceText = tailoredExperience.map(exp => {
-        const achievements = Array.isArray(exp.achievements) ? exp.achievements : [];
-        return `${exp.role || 'Role'} at ${exp.company || 'Company'} (${exp.duration || ''})\n${achievements.map(a => `- ${a}`).join('\n')}`;
-      }).join('\n\n');
-      
-      textToSend = `${cv.fullName || ''}\n${cv.professionalTitle || ''}\n\nSummary:\n${cv.summary || ''}\n\nExperience:\n${experienceText}\n\nKeywords Matched: ${atsKeywordsMatched.join(', ')}`;
-      filename = 'Tailored_CV.txt';
+    if (docType === 'coverletter') {
+      docxBuffer = await docxService.generateA4Buffer(savedDoc);
+      filename = `Anschreiben_${trackingId}.docx`;
+    } else {
+      // Extended future capability fallback if they request tailored CV in word format
+      return res.status(400).send("CV compilation in Word format is currently under maintenance. Use PDF.");
     }
 
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(textToSend);
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': docxBuffer.length
+    });
+
+    return res.end(docxBuffer);
 
   } catch (innerError) {
-    console.error("Critical extraction failure during text file compiling:", innerError);
-    res.status(500).send("Error compiling text download file layout.");
+    console.error("Critical extraction failure during DOCX file compiling:", innerError);
+    res.status(500).send("Error compiling structured Microsoft Word download asset.");
   }
 });
 
 // ==========================================
-// 4. DOWNLOAD PREMIUM PDF ENDPOINT (DIN 5008 Compliant)
+// 4. DOWNLOAD PREMIUM PDF ENDPOINT (DIN 5008 Compliant - SAFE VERSION)
 // ==========================================
 router.get('/download/pdf/:docType/:trackingId', async (req, res) => {
   try {
@@ -220,6 +234,7 @@ router.get('/download/pdf/:docType/:trackingId', async (req, res) => {
     
     const activeAsset = memoryStorage[trackingId]; 
     if (!activeAsset) {
+      console.error(`❌ Asset holding key [${trackingId}] was not found in server memory slots.`);
       return res.status(404).json({ error: 'Requested asset transaction not found or expired.' });
     }
 
@@ -227,13 +242,18 @@ router.get('/download/pdf/:docType/:trackingId', async (req, res) => {
       return res.status(400).json({ error: 'Unsupported document compilation type.' });
     }
 
-    const cl = activeAsset.coverLetter;
+    // تأمين جلب كائن رسالة التغطية حتى لو أرجعه الذكاء الاصطناعي فارغاً
+    const cl = activeAsset.coverLetter || {};
     const paragraphs = Array.isArray(cl.bodyParagraphs) ? cl.bodyParagraphs : [];
     
-    // Build the paragraph string sequentially to ensure no async render-blocking
     let bodyParagraphsHTML = '';
-    for (let i = 0; i < paragraphs.length; i++) {
-      bodyParagraphsHTML += `<p style="text-align: justify; line-height: 1.6; margin-bottom: 16px; font-size: 14px; font-weight: 400; font-family: sans-serif; color: #334155;">${paragraphs[i]}</p>`;
+    if (paragraphs.length === 0) {
+      // سطر أمان احتياطي في حال فشل استخراج الفقرات الأصلية من النموذج
+      bodyParagraphsHTML = `<p style="text-align: justify; line-height: 1.6; margin-bottom: 20px; font-size: 13px; font-family: sans-serif; color: #1e293b;">Vielen Dank für die Prüfung meiner Bewerbungsunterlagen.</p>`;
+    } else {
+      for (let i = 0; i < paragraphs.length; i++) {
+        bodyParagraphsHTML += `<p style="text-align: justify; line-height: 1.6; margin-bottom: 20px; font-size: 13px; font-weight: 400; font-family: sans-serif; color: #1e293b;">${paragraphs[i]}</p>`;
+      }
     }
 
     const targetHtml = `
@@ -243,68 +263,58 @@ router.get('/download/pdf/:docType/:trackingId', async (req, res) => {
         <meta charset="utf-8">
         <title>Anschreiben</title>
         <style>
-          /* Define absolute A4 print constraints */
           @page { 
             size: A4; 
-            margin: 20mm 20mm 20mm 25mm; /* DIN 5008 standard: 25mm left margin for folding/binding */
+            margin: 25mm 20mm 20mm 25mm;
           }
           body { 
             background: white; 
             margin: 0; 
             padding: 0; 
-            font-family: 'Times New Roman', Times, serif;
+            font-family: Arial, Helvetica, sans-serif; 
             -webkit-print-color-adjust: exact; 
-          }
-          p {
-            text-align: justify;
-            line-height: 1.6;
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 14px;
-            color: #1e293b;
           }
         </style>
       </head>
       <body>
-        <div style="position: absolute; top: -20mm; left: -25mm; right: -20mm; height: 4px; background-color: #4f46e5;"></div>
-        
-        <div style="width: 100%; box-sizing: border-box; padding-top: 10mm;">
+        <div style="width: 100%; box-sizing: border-box;">
           
-          <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 32px; font-family: sans-serif;">
+          <div style="border-bottom: 2px solid #4f46e5; padding-bottom: 12px; margin-bottom: 30px;">
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="vertical-align: top;">
-                  <h2 style="font-size: 18px; font-weight: 700; text-transform: uppercase; margin: 0; color: #0f172a; letter-spacing: -0.02em;">${cl.senderName || 'Your Name'}</h2>
-                  <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0; font-family: sans-serif;">${cl.senderContact || ''}</p>
+                  <h2 style="font-size: 20px; font-weight: 700; margin: 0; color: #0f172a; letter-spacing: -0.02em;">${cl.senderName || 'Yassin Marmoud'}</h2>
+                  <p style="font-size: 11px; color: #475569; margin: 6px 0 0 0; line-height: 1.4;">${cl.senderContact || ''}</p>
                 </td>
-                <td style="text-align: right; font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; vertical-align: top; padding-top: 6px;">
-                  DIN 5008 Layout
+                <td style="text-align: right; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; vertical-align: top; padding-top: 6px;">
+                  Bewerbungsunterlagen
                 </td>
               </tr>
             </table>
           </div>
 
-          <div style="margin-bottom: 35mm; font-family: sans-serif; font-size: 12px; color: #334155;">
-            <span style="font-size: 9px; font-weight: 700; color: #6366f1; text-transform: uppercase; display: block; margin-bottom: 6px; letter-spacing: 0.05em;">Empfänger</span>
-            <div style="font-weight: 500; color: #0f172a; background-color: #f8fafc; border-left: 3px solid #cbd5e1; padding: 12px; font-style: italic; width: 85mm;">
-              ${cl.recipientCompany || 'Target Company Name'}
-            </div>
+          <div style="text-align: right; font-size: 12px; color: #334155; margin-bottom: 20px;">
+            ${new Date().toLocaleDateString('de-DE')}
           </div>
 
-          <div style="margin-bottom: 24px;">
-            <h3 style="font-size: 15px; font-weight: 700; color: #0f172a; font-family: sans-serif; margin: 0; letter-spacing: -0.01em;">
+          <div style="margin-bottom: 25mm; font-size: 12px; color: #1e293b; line-height: 1.5; width: 85mm;">
+            <div style="white-space: pre-line; color: #0f172a;">${cl.recipientCompany || ''}</div>
+          </div>
+
+          <div style="margin-bottom: 28px;">
+            <h1 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">
               ${cl.subjectLine || 'Bewerbung'}
-            </h3>
+            </h1>
           </div>
 
           <div style="margin-top: 16px;">
-            <p style="font-family: sans-serif; font-weight: 700; color: #0f172a; margin-bottom: 16px;">${cl.salutation || 'Sehr geehrte Damen und Herren,'}</p>
+            <p style="font-weight: 700; color: #0f172a; margin-bottom: 18px; font-size: 13px;">${cl.salutation || 'Sehr geehrte Damen und Herren,'}</p>
             <div>${bodyParagraphsHTML}</div>
             
-            <div style="margin-top: 40px; font-family: sans-serif;">
-              <p style="font-size: 14px; color: #1e293b; margin: 0;">Mit freundlichen Grüßen</p>
-              <div style="margin-top: 48px;">
-                <p style="font-size: 14px; font-weight: 700; color: #0f172a; border-top: 1px solid #cbd5e1; padding-top: 6px; display: inline-block; min-width: 160px;">${cl.senderName || ''}</p>
+            <div style="margin-top: 35px;">
+              <p style="font-size: 13px; color: #1e293b; margin: 0;">${cl.signOff || 'Mit freundlichen Grüßen,'}</p>
+              <div style="margin-top: 40px;">
+                <p style="font-size: 13px; font-weight: 700; color: #0f172a; display: inline-block;">${cl.senderName || 'Yassin Marmoud'}</p>
               </div>
             </div>
           </div>
@@ -314,14 +324,12 @@ router.get('/download/pdf/:docType/:trackingId', async (req, res) => {
       </html>
     `;
     
-    // Generate buffer from our clean service
     const pdfBuffer = await pdfService.generateA4Buffer(targetHtml);
 
     if (!pdfBuffer || pdfBuffer.length === 0) {
-      throw new Error('PDF content resulted in an empty payload.');
+      throw new Error('PDF content resulted in an empty payload array execution error.');
     }
 
-    // Force strict binary stream headers response
     res.writeHead(200, {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="Anschreiben_${trackingId}.pdf"`,
@@ -331,7 +339,7 @@ router.get('/download/pdf/:docType/:trackingId', async (req, res) => {
     return res.end(pdfBuffer);
 
   } catch (err) {
-    console.error('Routing execution download loop failure:', err);
+    console.error('🔴 CRITICAL ROUTE CRASH DETECTED:', err); // 👈 هذا السطر سيطبع لك السبب التفصيلي في التيرمينال الآن إن وجد
     if (!res.headersSent) {
       return res.status(500).json({ error: 'Internal pipeline asset compilation failure.' });
     }

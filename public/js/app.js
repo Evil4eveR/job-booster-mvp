@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedFile: null,
     inputMode: 'upload' // 'upload' or 'manual'
   };
-
+  
   // UI Element Selectors DOM Mapping Matrix Reference Hooks Context
   const form = document.getElementById('generator-form');
   const dropZone = document.getElementById('drop-zone');
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileBadge = document.getElementById('file-badge');
   const fileBadgeName = document.getElementById('file-badge-name');
   const removeFileBtn = document.getElementById('remove-file-btn');
-  
+
   const toggleUploadBtn = document.getElementById('toggle-upload-btn');
   const toggleManualBtn = document.getElementById('toggle-manual-btn');
   const uploadWrapperBox = document.getElementById('upload-wrapper-box');
@@ -95,11 +95,40 @@ document.addEventListener('DOMContentLoaded', () => {
     fileBadge.classList.remove('hidden');
     dropZone.querySelector('.space-y-2').classList.add('hidden');
   }
-
+  // for dev mode
+  const IS_DEV_MODE = false;
   // Submit configuration trigger logic block intercept execution pipeline matrix routines
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+  if (IS_DEV_MODE) {
+    // بيانات وهمية تحاكي تماماً ما يرسله السيرفر لتجربة التصميم مجاناً
+    const mockNetworkResponse = {
+      trackingId: "test_track_12345",
+      preview: {
+        coverLetter: {
+          senderName: "Max Mustermann",
+          senderContact: "Musterstraße 1, 12345 Musterstadt • +49 176 1234567",
+          recipientCompany: "Beispielfirma GmbH\nPersonalabteilung\nTech-Allee 10",
+          subjectLine: "Bewerbung als Mitarbeiter im 2nd Level Support",
+          salutation: "Sehr geehrte Damen und Herren,",
+          bodyParagraphs: [
+            "mit großem Interesse habe ich Ihre Stellenausschreibung für den 2nd Level Support analysiert. Als erfahrener IT-Spezialist bringe ich fundierte Kenntnisse in Linux Systemadministration und containerisierten Architekturen mit.",
+            "In meiner täglichen Praxis löse ich komplexe technische Vorfälle unter strikter Einhaltung von SLAs. Ich freue يعني هنا النص سيكون مخفي ومطمس تماماً في المعاينة حتى يضغط المستخدم على الدفع."
+          ],
+          signOff: "Mit freundlichen Grüßen"
+        },
+        tailoredCV: {
+          atsKeywordsMatched: ["Linux", "Ubuntu", "Docker", "SLA", "IT-Support", "Troubleshooting"],
+          summary: "Erfahrener IT Engineer mit starkem Fokus auf automatisierte Infrastrukturen وتقديم دعم فني متقدم من المستوى الثاني."
+        }
+      }
+    };
+    // تشغيل نفس دالة الرندر التي تعبنا في ضبط حجمها ومحاذاتها
+    renderPreviewDashboard(mockNetworkResponse.preview);
+    Components.toggleView('results-view');
+    return; // إنهاء التنفيذ هنا لمنع الاتصال بالإنترنت واستهلاك الرصيد!
+  }
+
     const formData = new FormData();
     formData.append('jobDescription', document.getElementById('job-desc').value);
     formData.append('languageSelection', document.getElementById('lang-select').value);
@@ -128,7 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       formData.append('manualProfile', JSON.stringify(manualProfile));
     }
-
+  
+    if (!IS_DEV_MODE) {
     try {
       Components.toggleView('loading-view');
       const networkDataResponse = await ApiClient.generateAssets(formData);
@@ -141,47 +171,88 @@ document.addEventListener('DOMContentLoaded', () => {
       Components.toggleView('input-view');
       Components.showNotification(err.message || 'Processing engine failure runtime context operational issue.', 'error');
     }
+  }
   });
 
 function renderPreviewDashboard(preview) {
-    // 1. Build a clean, multi-paragraph preview layout for the cover letter
-    const cl = preview.coverLetter;
+    const cl = preview.coverLetter || {};
+    const bodyParagraphs = Array.isArray(cl.bodyParagraphs) ? cl.bodyParagraphs : [];
     
-    // Joint the array of body paragraphs into spaced text blocks
-    const paragraphHTML = cl.bodyParagraphs.map(p => `<p class="mb-4 text-slate-300 leading-relaxed">${p}</p>`).join('');
+    // 1. Render background text rows with explicit selection blocks and high-density blur filters
+    const paragraphHTML = bodyParagraphs.map((p, idx) => {
+      if (idx === 0) {
+        return `<p class="mb-3 text-slate-500 text-xs select-none pointer-events-none">${p.substring(0, 40)}... <span class="blur-[5px] select-none">${p.substring(40)}</span></p>`;
+      }
+      return `<p class="mb-3 text-slate-500 text-xs blur-[6px] select-none pointer-events-none tracking-tight">${p}</p>`;
+    }).join('');
     
-    // Inject the structured layout directly into your preview viewport pane
+    // 2. Establish uniform bounding boxes on the preview text container (Fixed height match)
+    previewTextPane.className = "bg-slate-950/90 rounded-xl p-5 font-mono text-xs text-slate-400 leading-relaxed h-[520px] overflow-hidden relative border border-slate-900 select-none";
     previewTextPane.innerHTML = `
-      <div class="text-sm text-slate-400 mb-2">${cl.senderName} • ${cl.senderContact}</div>
-      <div class="text-sm text-slate-400 mb-4"><strong>To:</strong> ${cl.recipientCompany}</div>
-      <h3 class="text-md font-bold text-white mb-4">${cl.subjectLine}</h3>
-      <p class="mb-4 text-slate-300">${cl.salutation}</p>
-      ${paragraphHTML}
-      <p class="text-slate-300 mt-4">${cl.signOff}</p>
-      <p class="text-slate-300 font-semibold">${cl.senderName}</p>
+      <div class="border-b border-slate-800 pb-2.5 mb-3 opacity-40">
+        <div class="text-[10px] font-bold tracking-wide text-indigo-400 uppercase font-sans mb-0.5">Sender Profile Context</div>
+        <div class="text-xs text-slate-200 font-bold">${cl.senderName || 'Candidate Profile'}</div>
+        <div class="text-[10px] text-slate-500 font-mono">${cl.senderContact || ''}</div>
+      </div>
+      
+      <div class="mb-3 opacity-20">
+        <div class="text-[10px] font-bold tracking-wide text-slate-500 uppercase font-sans mb-0.5">Empfänger (Recipient)</div>
+        <div class="text-xs text-slate-400 font-sans italic">${cl.recipientCompany || 'Target Company'}</div>
+      </div>
+      
+      <div class="mb-2 border-t border-slate-800/60 pt-2.5 opacity-20">
+        <p class="mb-2 text-slate-400 font-sans font-semibold text-xs">${cl.salutation || 'Sehr geehrte Damen und Herren,'}</p>
+      </div>
+
+      <div class="space-y-2 relative pr-1 opacity-20">
+        ${paragraphHTML}
+      </div>
+
+      <div class="absolute inset-x-0 bottom-0 top-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-slate-950/40 flex flex-col justify-center items-center p-6 text-center">
+        <div class="space-y-2 mb-4">
+          <span class="inline-flex bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm">
+            🔒 DIN 5008 Artifact Locked
+          </span>
+          <h3 class="text-xl font-black text-white tracking-tight">Unlock Ready Assets</h3>
+          <p class="text-slate-400 text-xs max-w-[240px] mx-auto leading-normal">Your high-density German cover letter and matching keyword configurations matrix are fully optimized.</p>
+        </div>
+        
+        <div class="bg-slate-900/90 border border-slate-800/80 rounded-xl py-1.5 px-6 mb-4 shadow-xl">
+          <div class="text-xl font-black text-emerald-400">€4.99</div>
+        </div>
+        
+        <div id="paypal-button-container" class="max-w-[240px] w-full mx-auto"></div>
+      </div>
     `;
     
-    // 2. Loop through and print out the matched ATS keywords
-    previewKeywordsTags.innerHTML = '';
-    const keywordsList = preview.tailoredCV.atsKeywordsMatched || [];
-    keywordsList.forEach(kw => {
-      const tag = document.createElement('span');
-      tag.className = "bg-indigo-500/10 text-indigo-400 text-xs px-2.5 py-1 rounded-md border border-indigo-500/20 font-medium";
-      tag.textContent = kw;
-      previewKeywordsTags.appendChild(tag);
-    });
+    // 3. Delegate keywords mapping directly to Components
+    const keywordsList = (preview.tailoredCV && preview.tailoredCV.atsKeywordsMatched) || [];
+    Components.renderKeywords(keywordsList);
 
-    // 3. Clear out old suggestions bullet container or use it to show the executive summary
-    previewAtsBullets.innerHTML = `
-      <li class="text-slate-300 list-none italic border-l-2 border-indigo-500 pl-3">
-        <strong>Target Executive Summary:</strong> ${preview.tailoredCV.summary}
-      </li>
-    `;
+    // 4. Update the right metrics column wrapper to use a matching h-[520px] fixed box layout frame
+    const rightSidebarContainer = previewKeywordsTags.closest('.bg-slate-800\\/40') || previewKeywordsTags.parentElement;
+    if (rightSidebarContainer) {
+      rightSidebarContainer.className = "bg-slate-800/40 border border-slate-700/60 rounded-2xl p-6 shadow-xl backdrop-blur-sm h-[520px] flex flex-col justify-between overflow-y-auto scrollbar-thin";
+    }
 
-    checkoutPayLockPane.classList.remove('hidden');
+    // 5. Unpack structural analytical points dynamically
+    const cvData = preview.tailoredCV || {};
+    const structuralGuidelines = [];
+    if (cvData.summary) {
+      structuralGuidelines.push(`<strong>Target Profile Summary Strategy:</strong> ${cvData.summary}`);
+    }
+    if (Array.isArray(cvData.atsSuggestions)) {
+      cvData.atsSuggestions.forEach(s => structuralGuidelines.push(s));
+    } else {
+      structuralGuidelines.push("All core systems administration and low-level compliance metrics analyzed successfully.");
+    }
+    Components.renderATSBullets(structuralGuidelines);
+
+    // Hide old decoupled card block
+    checkoutPayLockPane.classList.add('hidden');
     unlockedDownloadPane.classList.add('hidden');
     
-    // Set up clear mounts updates actions handlers calls definitions elements
+    // Initialize secure verification gateway hooks rendering engine
     mountPayPalExpressCheckoutButton(appState.currentTrackingId);
   }
 
@@ -267,11 +338,19 @@ function revealFullUnlockedPayloadData(payload) {
   }
 
 function setupDownloadButtonsRoutingHooks(trackingId) {
+  // 1. ربط زر تحميل ملف الـ PDF الجاهز بالرابط الخلفي الصحيح
   document.getElementById('dl-cl-pdf').onclick = function() {
     window.location.href = `/api/ai/download/pdf/coverletter/${trackingId}`;
   };
-}
 
+  // 2. ربط زر تحميل ملف الـ Word (DOCX) الجديد بالرابط الخلفي المحدث
+  const docxButton = document.getElementById('dl-cl-docx');
+  if (docxButton) {
+    docxButton.onclick = function() {
+      window.location.href = `/api/ai/download/docx/coverletter/${trackingId}`;
+    };
+  }
+}
   resetAppBtn.addEventListener('click', () => {
     form.reset();
     appState.selectedFile = null;

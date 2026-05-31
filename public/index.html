@@ -4,18 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobBooster MVP AI</title>
-  <!-- Load unified production-ready Tailwind directly -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/styles.css">
-  <!-- Load live PayPal Smart Buttons SDK framework template -->
   <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR"></script>
 </head>
 <body class="h-full text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- Core Scaffold Wrap -->
   <div class="min-h-full flex flex-col justify-between">
     
-    <!-- Top Global Header Menu -->
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div class="flex items-center space-x-3">
@@ -25,11 +21,9 @@
       </div>
     </header>
 
-    <!-- Main Processing Application Container space -->
     <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-10">
       <div id="notification-zone" class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none"></div>
 
-      <!-- Processing Form Section -->
       <section id="input-view" class="space-y-8 animate-fade-in">
         <div class="text-center max-w-2xl mx-auto space-y-3">
           <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl text-white">Land your target tech job in Germany.</h1>
@@ -38,7 +32,6 @@
 
         <form id="generator-form" class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 md:p-8 shadow-xl space-y-8">
           
-          <!-- Toggle input choice style layout -->
           <div class="space-y-3">
             <label class="text-sm font-semibold tracking-wide uppercase text-slate-400">Choose Profile Entry Method</label>
             <div class="grid grid-cols-2 gap-4">
@@ -51,7 +44,6 @@
             </div>
           </div>
 
-          <!-- Component File Area Box Wrapper -->
           <div id="upload-wrapper-box" class="space-y-2">
             <label class="block text-sm font-medium text-slate-300">Upload Current CV / Resume</label>
             <div id="drop-zone" class="border-2 border-dashed border-slate-600 hover:border-indigo-500 rounded-xl p-8 text-center bg-slate-900/40 transition cursor-pointer group">
@@ -67,7 +59,6 @@
             </div>
           </div>
 
-          <!-- Component Manual Input Box Layout -->
           <div id="manual-input-box" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 border border-slate-700/50 bg-slate-900/30 p-5 rounded-xl">
             <div class="space-y-4">
               <div>
@@ -104,7 +95,6 @@
             </div>
           </div>
 
-          <!-- Configuration target forms blocks grid row parameters setup -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="md:col-span-3 space-y-2">
               <label class="block text-sm font-medium text-slate-300">Target German Job Description (Paste Text)</label>
@@ -120,14 +110,12 @@
             </div>
           </div>
 
-          <!-- Master Processing Core Run Action Buttons Grid -->
           <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg shadow-indigo-500/20 flex items-center justify-center space-x-3 text-lg">
             <span>🚀 Engine Optimizer Pipeline Process</span>
           </button>
         </form>
       </section>
 
-      <!-- Advanced System Loading Frame Context Overlay Wrapper UI Layout elements view -->
       <section id="loading-view" class="hidden min-h-[400px] flex flex-col items-center justify-center space-y-4 animate-fade-in">
         <div class="relative w-20 h-20">
           <div class="absolute inset-0 border-4 border-indigo-500/20 rounded-full"></div>
@@ -137,64 +125,66 @@
         <p class="text-xs text-slate-500 font-mono tracking-wider">EST TIME: ~5-12 SECONDS</p>
       </section>
 
-      <!-- Complete Post Processing Conversion Gate Dashboard Panel UI Wrapper elements structure -->
-      <section id="results-view" class="hidden space-y-8 animate-fade-in">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-5 gap-4">
+      <section id="results-view" class="hidden space-y-10 animate-fade-in">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-6 gap-4">
           <div>
-            <h2 class="text-3xl font-extrabold text-white">Analysis & Parsing Outputs Matrix</h2>
-            <p class="text-slate-400 text-sm">Review profile tracking context matching values below before unlocking documents extraction layout options.</p>
+            <h2 class="text-3xl font-black text-white tracking-tight">Analysis & Parsing Outputs Matrix</h2>
+            <p class="text-slate-400 text-sm mt-1">Review profile tracking context matching values below before unlocking documents extraction layout options.</p>
           </div>
-          <button id="reset-app-btn" class="text-xs text-slate-400 hover:text-white px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-800 transition">
+          <button id="reset-app-btn" class="text-xs font-semibold text-slate-300 hover:text-white px-4 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800/60 transition shadow-sm">
             ← Reset Matrix / Parse Alternative File
           </button>
         </div>
 
-        <!-- Open Preview Grid Layout Area Box Details elements components items structure visual blocks -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="md:col-span-2 space-y-6">
-            <!-- App Preview box wrapper -->
-            <div class="bg-slate-800/40 border border-slate-700/80 rounded-xl p-5 space-y-3">
-              <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                <span>Anschreiben (Cover Letter Cover Text View Window)</span>
-                <span class="text-xs text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 lowercase">partial view</span>
-              </h3>
-              <div id="preview-text-pane" class="bg-slate-900/80 rounded-lg p-4 font-mono text-xs text-slate-300 leading-relaxed max-h-40 overflow-hidden relative select-none">
-                <!-- Data maps dynamically here -->
-                <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-900 to-transparent"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="space-y-6">
-            <!-- Track Info Elements Parameters items components blocks layout maps -->
-            <div class="bg-slate-800/40 border border-slate-700/80 rounded-xl p-5 space-y-4">
-              <div>
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Target Keywords Identified</h4>
-                <div id="preview-keywords-tags" class="flex flex-wrap gap-1.5"></div>
-              </div>
-              <hr class="border-slate-700/60">
-              <div>
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">ATS Tracking Compliance Guidelines</h4>
-                <ul id="preview-ats-bullets" class="space-y-1.5 text-xs text-slate-300 list-disc list-inside"></ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- System Checkout Gate Pay Box Container UI Module components overlay structure content maps -->
-        <div id="checkout-pay-lock-pane" class="bg-gradient-to-br from-indigo-900/50 to-slate-900 border-2 border-indigo-500/40 rounded-2xl p-6 md:p-8 text-center max-w-xl mx-auto space-y-6 shadow-2xl relative overflow-hidden">
-          <div class="space-y-2">
-            <span class="inline-flex bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest animate-pulse">Unlock System Framework Pack</span>
-            <h3 class="text-2xl font-black text-white">Extract Your Production Output Files</h3>
-            <p class="text-slate-300 text-sm max-w-md mx-auto">Access complete professionally formatted German cover letter documentation forms and tailored CV structured copy configurations files layouts now.</p>
-          </div>
-          <div class="text-3xl font-black text-white py-1">€4.99 <span class="text-xs text-slate-400 font-normal">one-time secure processing flat authorization</span></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          <!-- Live mounting anchor reference for PayPal smart modules rendering code engine -->
-          <div id="paypal-button-container" class="max-w-xs mx-auto"></div>
+          <div class="lg:col-span-7 space-y-6">
+            <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between mb-4">
+                <span>Anschreiben (Cover Letter Cover Text View Window)</span>
+                <span class="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 uppercase tracking-wide">partial view</span>
+              </h3>
+              <div id="preview-text-pane" class="bg-slate-950/80 rounded-xl p-5 font-mono text-xs text-slate-300 leading-relaxed max-h-56 overflow-hidden relative select-none border border-slate-900">
+                <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-950 to-transparent"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 space-y-6">
+            <div class="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
+              
+              <div>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Target Keywords Identified</h4>
+                <div id="preview-keywords-tags" class="flex flex-wrap gap-2 min-h-[40px]"></div>
+              </div>
+              
+              <div class="border-t border-slate-700/60 pt-5">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">ATS Tracking Compliance Guidelines</h4>
+                <ul id="preview-ats-bullets" class="space-y-2.5 text-xs text-slate-300 list-none pl-1"></ul>
+              </div>
+
+            </div>
+          </div>
         </div>
 
-        <!-- Complete System Success Document Manager Layout panel UI box structure components wrapper grid row items -->
+        <div id="checkout-pay-lock-pane" class="bg-gradient-to-b from-slate-800/80 to-slate-900 border-2 border-indigo-500/30 rounded-2xl p-8 text-center max-w-lg mx-auto space-y-6 shadow-2xl relative">
+          <div class="space-y-2">
+            <span class="inline-flex bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full animate-pulse">
+              Unlock System Framework Pack
+            </span>
+            <h3 class="text-2xl font-extrabold text-white tracking-tight">Extract Your Production Output Files</h3>
+            <p class="text-slate-400 text-xs leading-relaxed max-w-sm mx-auto">Access complete professionally formatted German cover letter documentation forms and tailored CV structured copy configurations files layouts now.</p>
+          </div>
+          
+          <div class="bg-slate-950/40 rounded-xl py-3 border border-slate-800">
+            <div class="text-3xl font-black text-white">€4.99</div>
+            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mt-0.5">one-time secure processing</div>
+          </div>
+          
+          <div id="paypal-button-container" class="max-w-xs mx-auto pt-2"></div>
+        </div>
+
         <div id="unlocked-download-pane" class="hidden bg-slate-800/70 border-2 border-emerald-500/40 rounded-2xl p-6 md:p-8 space-y-6 animate-fade-in">
           <div class="flex items-center space-x-3 text-emerald-400">
             <span class="text-2xl">✓</span>
@@ -205,7 +195,6 @@
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Cover Letter Download -->
             <div class="bg-slate-900/50 border border-slate-700 rounded-xl p-4 flex flex-col justify-between space-y-4">
               <div>
                 <h4 class="font-bold text-white text-base">Bespoke German Cover Letter (Anschreiben)</h4>
@@ -213,11 +202,10 @@
               </div>
               <div class="flex gap-2">
                 <button id="dl-cl-pdf" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-3 rounded-lg text-xs transition">Download PDF</button>
-                <button id="dl-cl-txt" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 px-3 rounded-lg text-xs transition">Download TXT</button>
+                <button id="dl-cl-docx" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 px-3 rounded-lg text-xs transition">Download Docx</button>
               </div>
             </div>
 
-            <!-- CV Draft Download -->
             <div class="bg-slate-900/50 border border-slate-700 rounded-xl p-4 flex flex-col justify-between space-y-4">
               <div>
                 <h4 class="font-bold text-white text-base">ATS Tailored Resume Layout Matrix</h4>
@@ -230,7 +218,6 @@
             </div>
           </div>
 
-          <!-- Live Full Output View for verification and quick copying -->
           <div class="mt-6 space-y-4 border-t border-slate-700 pt-6">
             <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-4">Live Document & Matrix Preview</h4>
             
@@ -263,13 +250,62 @@
       </section>
     </main>
 
-    <!-- Global Layout Base footer metadata -->
+    <div id="dev-sandbox-panel" class="max-w-5xl w-full mx-auto px-4 mb-6 animate-fade-in">
+      <div class="bg-slate-950/60 border border-amber-500/30 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 backdrop-blur-sm">
+        <div class="space-y-1 text-left">
+          <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+            <span class="text-xs font-mono font-bold text-amber-400 tracking-widest uppercase">Developer Sandbox Mode Active</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Eliminate manual inputs. One click feeds a production-grade CV configuration and German vacancy straight into your engine pipeline.</p>
+        </div>
+        <button type="button" id="dev-autofill-btn" class="w-full md:w-auto bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-mono font-bold py-2.5 px-4 rounded-lg transition active:scale-98 flex items-center justify-center space-x-2">
+          <span>⚡ Inject Production Test Profile Matrix</span>
+        </button>
+      </div>
+
+      <script>
+        document.getElementById('dev-autofill-btn').addEventListener('click', () => {
+          // 1. Force the UI to switch to Manual Input Mode to view the data insertion injection
+          const manualBtn = document.getElementById('toggle-manual-btn');
+          if (manualBtn) manualBtn.click();
+
+          // 2. Hydrate Profile Target Fields
+          document.getElementById('manual-name').value = "Yassin Mahmoud";
+          document.getElementById('manual-email').value = "yassin.mahmoud.dev@gmail.com";
+          document.getElementById('manual-address').value = "Wolfsburg, Germany";
+          document.getElementById('manual-github').value = "https://github.com/yassin-mahmoud";
+          document.getElementById('manual-linkedin').value = "https://linkedin.com/in/yassin-mahmoud";
+          
+          // 3. Hydrate Complex Systems Profile Data Match Settings
+          document.getElementById('manual-skills').value = "C, C++, Python, JavaScript, Node.js, SQL, Linux Admin (Ubuntu, Kali), Docker, Git, Bash Scripting, Systems Architecture, EDI Protocols (X12, EDIFACT, XML)";
+          document.getElementById('manual-experience').value = "EDI Software Integrator at EDICOMGROUP (Jan 2024 - Present): Managing automated industrial mapping transformations frameworks.\nTechnical Support Engineer at WhaleCloud Technology (Oct 2022 - Oct 2023): Monitored distributed cloud pipeline frameworks and system health metrics.";
+          document.getElementById('manual-education').value = "B.Sc. Computer Science (Eötvös Loránd University), 42 Coding Curriculum Core";
+          
+          // 4. Inject High-Target Complex German Job Vacancy Text
+          document.getElementById('job-desc').value = `STELLENANGEBOT: System- und DevOps-orientierter IT Engineer (m/w/d)\n\nSTANDORT: Wolfsburg, Deutschland\n\nIHR PROFIL:\n- Fundierte Kenntnisse im Bereich Linux Systemadministration (Ubuntu)\n- Sicherer Umgang mit Docker Containern und CI/CD Automatisierung\n- Erfahrung mit Bash-Scripting und Backend-Entwicklung (Node.js/Python)\n- Kenntnisse im Bereich EDI-Datenaustausch (EDIFACT, XML) von Vorteil\n- Gute Kommunikationsfähigkeiten in Englisch oder Deutsch\n\nIHRE AUFGABEN:\n- Betreuung und Optimierung unserer containerisierten Softwarearchitektur\n- Automatisierung von Bereitstellungsprozessen innerhalb unserer Pipelines\n- Systematische Fehleranalyse und Behebung kritischer Vorfälle im IT-Support`;
+          
+          // 5. Explicitly enforce the dropdown parameter matrix values tracking configuration
+          document.getElementById('lang-select').value = "German";
+
+          // 6. Push user diagnostic notification status update inside message engine layout
+          const zone = document.getElementById('notification-zone');
+          if(zone) {
+            const el = document.createElement('div');
+            el.className = 'bg-amber-500 text-slate-950 text-xs font-bold font-mono px-4 py-2.5 rounded-lg shadow-xl border border-amber-400 pointer-events-auto animate-fade-in flex items-center justify-between space-x-2';
+            el.innerHTML = '<span>SUCCESS: Pipeline test assets fully mounted in DOM!</span>';
+            zone.appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+          }
+        });
+      </script>
+    </div>
+
     <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500 font-mono">
       <div>JobBooster MVP AI Engine Systems Pipeline &bull; All Rights Reserved 2026</div>
     </footer>
   </div>
 
-  <!-- Inject runtime front logic files execution assets code structures modules -->
   <script src="js/api.js"></script>
   <script src="js/components.js"></script>
   <script src="js/app.js"></script>

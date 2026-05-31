@@ -1,9 +1,14 @@
-document.addEventListener('DOMContentLoaded', () => {
+import { translations } from './translations.js';
+
+document.addEventListener('DOMContentLoaded', async () => { // 👈 تم إضافة async هنا لدعم جلب البيانات الجغرافية
+  
   // Application Dynamic Component State Scope Tracking Context Keys Definitions Engine Data Maps
   let appState = {
     currentTrackingId: null,
     selectedFile: null,
-    inputMode: 'upload' // 'upload' or 'manual'
+    inputMode: 'upload', // 'upload' or 'manual'
+    currentCurrency: 'EUR', // 👈 قيمة افتراضية يتم تحديثها من السيرفر
+    currentLanguage: 'de'   // 👈 قيمة افتراضية يتم تحديثها من السيرفر
   };
   
   // UI Element Selectors DOM Mapping Matrix Reference Hooks Context
@@ -27,6 +32,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const checkoutPayLockPane = document.getElementById('checkout-pay-lock-pane');
   const unlockedDownloadPane = document.getElementById('unlocked-download-pane');
   const resetAppBtn = document.getElementById('reset-app-btn');
+
+  // ==========================================
+  // 🌍 خطوة البداية: جلب معلومات الموقع والعملة واللغات الـ 10 من السيرفر
+  // ==========================================
+  try {
+    const localeResponse = await fetch('/api/init-locale');
+    const localeData = await localeResponse.json();
+    
+    // حفظ البيانات المكتشفة في حالة التطبيق
+    appState.currentCurrency = localeData.currency;
+    appState.currentLanguage = localeData.language;
+
+    // بناء القائمة المنسدلة ديناميكياً وتفعيل الترجمة الفورية للموقع
+    renderLanguageSelector(localeData.supportedLanguages, appState.currentLanguage);
+    switchInterfaceLanguage(appState.currentLanguage);
+    
+    console.log(`🌍 Geo-Context Activated: Currency [${appState.currentCurrency}], Language [${appState.currentLanguage}]`);
+  } catch (err) {
+    console.error('Failed to initialize dynamic geo-localization rules:', err);
+  }
 
   // Input view toggle orchestration flow routines settings context handlers
   toggleUploadBtn.addEventListener('click', () => {
@@ -95,43 +120,42 @@ document.addEventListener('DOMContentLoaded', () => {
     fileBadge.classList.remove('hidden');
     dropZone.querySelector('.space-y-2').classList.add('hidden');
   }
-  // for dev mode
+
   const IS_DEV_MODE = false;
+
   // Submit configuration trigger logic block intercept execution pipeline matrix routines
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-  if (IS_DEV_MODE) {
-    // بيانات وهمية تحاكي تماماً ما يرسله السيرفر لتجربة التصميم مجاناً
-    const mockNetworkResponse = {
-      trackingId: "test_track_12345",
-      preview: {
-        coverLetter: {
-          senderName: "Max Mustermann",
-          senderContact: "Musterstraße 1, 12345 Musterstadt • +49 176 1234567",
-          recipientCompany: "Beispielfirma GmbH\nPersonalabteilung\nTech-Allee 10",
-          subjectLine: "Bewerbung als Mitarbeiter im 2nd Level Support",
-          salutation: "Sehr geehrte Damen und Herren,",
-          bodyParagraphs: [
-            "mit großem Interesse habe ich Ihre Stellenausschreibung für den 2nd Level Support analysiert. Als erfahrener IT-Spezialist bringe ich fundierte Kenntnisse in Linux Systemadministration und containerisierten Architekturen mit.",
-            "In meiner täglichen Praxis löse ich komplexe technische Vorfälle unter strikter Einhaltung von SLAs. Ich freue يعني هنا النص سيكون مخفي ومطمس تماماً في المعاينة حتى يضغط المستخدم على الدفع."
-          ],
-          signOff: "Mit freundlichen Grüßen"
-        },
-        tailoredCV: {
-          atsKeywordsMatched: ["Linux", "Ubuntu", "Docker", "SLA", "IT-Support", "Troubleshooting"],
-          summary: "Erfahrener IT Engineer mit starkem Fokus auf automatisierte Infrastrukturen وتقديم دعم فني متقدم من المستوى الثاني."
+    if (IS_DEV_MODE) {
+      const mockNetworkResponse = {
+        trackingId: "test_track_12345",
+        preview: {
+          coverLetter: {
+            senderName: "Max Mustermann",
+            senderContact: "Musterstraße 1, 12345 Musterstadt • +49 176 1234567",
+            recipientCompany: "Beispielfirma GmbH\nPersonalabteilung\nTech-Allee 10",
+            subjectLine: "Bewerbung als Mitarbeiter im 2nd Level Support",
+            salutation: "Sehr geehrte Damen und Herren,",
+            bodyParagraphs: [
+              "mit großem Interesse habe ich Ihre Stellenausschreibung für den 2nd Level Support analysiert. Als erfahrener IT-Spezialist bringe ich fundierte Kenntnisse in Linux Systemadministration und containerisierten Architekturen mit.",
+              "In meiner täglichen Praxis löse ich komplexe technische Vorfälle unter strikter Einhaltung von SLAs. Ich freue يعني هنا النص سيكون مخفي ومطمس تماماً في المعاينة حتى يضغط المستخدم على الدفع."
+            ],
+            signOff: "Mit freundlichen Grüßen"
+          },
+          tailoredCV: {
+            atsKeywordsMatched: ["Linux", "Ubuntu", "Docker", "SLA", "IT-Support", "Troubleshooting"],
+            summary: "Erfahrener IT Engineer mit starkem Fokus auf automatisierte Infrastrukturen وتقديم دعم فني متقدم من المستوى الثاني."
+          }
         }
-      }
-    };
-    // تشغيل نفس دالة الرندر التي تعبنا في ضبط حجمها ومحاذاتها
-    renderPreviewDashboard(mockNetworkResponse.preview);
-    Components.toggleView('results-view');
-    return; // إنهاء التنفيذ هنا لمنع الاتصال بالإنترنت واستهلاك الرصيد!
-  }
+      };
+      renderPreviewDashboard(mockNetworkResponse.preview);
+      Components.toggleView('results-view');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('jobDescription', document.getElementById('job-desc').value);
-    formData.append('languageSelection', document.getElementById('lang-select').value);
+    formData.append('languageSelection', appState.currentLanguage); // تعديل لإرسال لغة الواجهة الحالية المكتشفة
 
     if (appState.inputMode === 'upload') {
       if (!appState.selectedFile) {
@@ -159,26 +183,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   
     if (!IS_DEV_MODE) {
-    try {
-      Components.toggleView('loading-view');
-      const networkDataResponse = await ApiClient.generateAssets(formData);
-      
-      appState.currentTrackingId = networkDataResponse.trackingId;
-      renderPreviewDashboard(networkDataResponse.preview);
-      Components.toggleView('results-view');
-      Components.showNotification('AI Strategy compilation package assets built successfully!', 'success');
-    } catch (err) {
-      Components.toggleView('input-view');
-      Components.showNotification(err.message || 'Processing engine failure runtime context operational issue.', 'error');
+      try {
+        Components.toggleView('loading-view');
+        const networkDataResponse = await ApiClient.generateAssets(formData);
+        
+        appState.currentTrackingId = networkDataResponse.trackingId;
+        renderPreviewDashboard(networkDataResponse.preview);
+        Components.toggleView('results-view');
+        Components.showNotification('AI Strategy compilation package assets built successfully!', 'success');
+      } catch (err) {
+        Components.toggleView('input-view');
+        Components.showNotification(err.message || 'Processing engine failure runtime context operational issue.', 'error');
+      }
     }
-  }
   });
 
-function renderPreviewDashboard(preview) {
+  // ==========================================
+  // 🌐 دالة الترجمة الفورية للموقع
+  // ==========================================
+  function switchInterfaceLanguage(langKey) {
+    const selectedTranslations = translations[langKey] || translations['en'];
+
+    const mainTitle = document.getElementById('main-title');
+    if (mainTitle) mainTitle.textContent = selectedTranslations.title;
+
+    const mainSubtitle = document.getElementById('main-subtitle');
+    if (mainSubtitle) mainSubtitle.textContent = selectedTranslations.subtitle;
+
+    const uploadLabel = document.getElementById('upload-btn-label');
+    if (uploadLabel) uploadLabel.textContent = selectedTranslations.uploadBtn;
+
+    const submitButton = document.getElementById('submit-generator-btn');
+    if (submitButton) submitButton.textContent = selectedTranslations.generateBtn;
+
+    appState.currentLanguage = langKey;
+  }
+
+  // ==========================================
+  // 🎛️ دالة بناء القائمة المنسدلة للغات الـ 10
+  // ==========================================
+  function renderLanguageSelector(supportedLanguages, activeLang) {
+    const langDropdown = document.getElementById('lang-dropdown');
+    if (!langDropdown) return;
+
+    langDropdown.innerHTML = ''; 
+
+    Object.keys(supportedLanguages).forEach(langKey => {
+      const lang = supportedLanguages[langKey];
+      const option = document.createElement('option');
+      option.value = langKey;
+      option.textContent = `${lang.flag} ${lang.name}`;
+      
+      if (langKey === activeLang) {
+        option.selected = true;
+      }
+      langDropdown.appendChild(option);
+    });
+
+    langDropdown.addEventListener('change', (e) => {
+      const selectedLang = e.target.value;
+      console.log(`🌐 User manually switched language to: [${selectedLang}]`);
+      switchInterfaceLanguage(selectedLang);
+    });
+  }
+
+  // ==========================================
+  // 📊 دالة بناء لوحة المعاينة (Preview Dashboard)
+  // ==========================================
+  function renderPreviewDashboard(preview) {
     const cl = preview.coverLetter || {};
     const bodyParagraphs = Array.isArray(cl.bodyParagraphs) ? cl.bodyParagraphs : [];
     
-    // 1. Render background text rows with explicit selection blocks and high-density blur filters
     const paragraphHTML = bodyParagraphs.map((p, idx) => {
       if (idx === 0) {
         return `<p class="mb-3 text-slate-500 text-xs select-none pointer-events-none">${p.substring(0, 40)}... <span class="blur-[5px] select-none">${p.substring(40)}</span></p>`;
@@ -186,7 +261,6 @@ function renderPreviewDashboard(preview) {
       return `<p class="mb-3 text-slate-500 text-xs blur-[6px] select-none pointer-events-none tracking-tight">${p}</p>`;
     }).join('');
     
-    // 2. Establish uniform bounding boxes on the preview text container (Fixed height match)
     previewTextPane.className = "bg-slate-950/90 rounded-xl p-5 font-mono text-xs text-slate-400 leading-relaxed h-[520px] overflow-hidden relative border border-slate-900 select-none";
     previewTextPane.innerHTML = `
       <div class="border-b border-slate-800 pb-2.5 mb-3 opacity-40">
@@ -218,24 +292,22 @@ function renderPreviewDashboard(preview) {
         </div>
         
         <div class="bg-slate-900/90 border border-slate-800/80 rounded-xl py-1.5 px-6 mb-4 shadow-xl">
-          <div class="text-xl font-black text-emerald-400">€4.99</div>
+          <div class="text-xl font-black text-emerald-400">
+            ${appState.currentCurrency === 'EUR' ? '€' : appState.currentCurrency + ' '} 4.99
+          </div>
         </div>
-        
         <div id="paypal-button-container" class="max-w-[240px] w-full mx-auto"></div>
       </div>
     `;
     
-    // 3. Delegate keywords mapping directly to Components
     const keywordsList = (preview.tailoredCV && preview.tailoredCV.atsKeywordsMatched) || [];
     Components.renderKeywords(keywordsList);
 
-    // 4. Update the right metrics column wrapper to use a matching h-[520px] fixed box layout frame
     const rightSidebarContainer = previewKeywordsTags.closest('.bg-slate-800\\/40') || previewKeywordsTags.parentElement;
     if (rightSidebarContainer) {
       rightSidebarContainer.className = "bg-slate-800/40 border border-slate-700/60 rounded-2xl p-6 shadow-xl backdrop-blur-sm h-[520px] flex flex-col justify-between overflow-y-auto scrollbar-thin";
     }
 
-    // 5. Unpack structural analytical points dynamically
     const cvData = preview.tailoredCV || {};
     const structuralGuidelines = [];
     if (cvData.summary) {
@@ -248,17 +320,15 @@ function renderPreviewDashboard(preview) {
     }
     Components.renderATSBullets(structuralGuidelines);
 
-    // Hide old decoupled card block
     checkoutPayLockPane.classList.add('hidden');
     unlockedDownloadPane.classList.add('hidden');
     
-    // Initialize secure verification gateway hooks rendering engine
     mountPayPalExpressCheckoutButton(appState.currentTrackingId);
   }
 
   function mountPayPalExpressCheckoutButton(trackingId) {
     const btnContainer = document.getElementById('paypal-button-container');
-    btnContainer.innerHTML = ''; // Prevent duplication errors loops components layers mountings routines
+    btnContainer.innerHTML = ''; 
     
     if (typeof paypal === 'undefined') {
       console.error('PayPal SDK loading parameters trace logic block configuration missing.');
@@ -269,7 +339,10 @@ function renderPreviewDashboard(preview) {
       createOrder: (data, actions) => {
         return actions.order.create({
           purchase_units: [{
-            amount: { value: '4.99', currency_code: 'EUR' }
+            amount: { 
+              value: '4.99', 
+              currency_code: appState.currentCurrency === 'MAD' ? 'USD' : (appState.currentCurrency || 'EUR') // PayPal يفضل التحويل لـ USD للدول التي لا يدعم عملتها محلياً كالمغرب
+            }
           }]
         });
       },
@@ -291,25 +364,22 @@ function renderPreviewDashboard(preview) {
     }).render('#paypal-button-container');
   }
 
-function revealFullUnlockedPayloadData(payload) {
+  function revealFullUnlockedPayloadData(payload) {
     checkoutPayLockPane.classList.add('hidden');
     unlockedDownloadPane.classList.remove('hidden');
 
     const cl = payload.coverLetter || {};
     const cv = payload.tailoredCV || {};
 
-    // 1. Compile and Render the Premium Cover Letter Sheet using our separate function
     const targetSheetContainer = document.getElementById('cover-letter-target-sheet');
     if (targetSheetContainer) {
       targetSheetContainer.innerHTML = compilePremiumCoverLetterHTML(cl);
     }
 
-    // 2. Render the Right-Hand CV Blueprint Matrix Elements
     document.getElementById('matrix-cv-name').textContent = cv.fullName || 'Candidate Profile';
     document.getElementById('matrix-cv-title').textContent = cv.professionalTitle || 'Software Professional';
     document.getElementById('matrix-cv-summary').textContent = cv.summary || '';
 
-    // Render Experience structural blocks dynamically
     const expContainer = document.getElementById('matrix-cv-experience');
     expContainer.innerHTML = '';
     const experiences = Array.isArray(cv.tailoredExperience) ? cv.tailoredExperience : [];
@@ -333,24 +403,22 @@ function revealFullUnlockedPayloadData(payload) {
       expContainer.appendChild(block);
     });
 
-    // Configure download buttons
     setupDownloadButtonsRoutingHooks(appState.currentTrackingId);
   }
 
-function setupDownloadButtonsRoutingHooks(trackingId) {
-  // 1. ربط زر تحميل ملف الـ PDF الجاهز بالرابط الخلفي الصحيح
-  document.getElementById('dl-cl-pdf').onclick = function() {
-    window.location.href = `/api/ai/download/pdf/coverletter/${trackingId}`;
-  };
-
-  // 2. ربط زر تحميل ملف الـ Word (DOCX) الجديد بالرابط الخلفي المحدث
-  const docxButton = document.getElementById('dl-cl-docx');
-  if (docxButton) {
-    docxButton.onclick = function() {
-      window.location.href = `/api/ai/download/docx/coverletter/${trackingId}`;
+  function setupDownloadButtonsRoutingHooks(trackingId) {
+    document.getElementById('dl-cl-pdf').onclick = function() {
+      window.location.href = `/api/ai/download/pdf/coverletter/${trackingId}`;
     };
+
+    const docxButton = document.getElementById('dl-cl-docx');
+    if (docxButton) {
+      docxButton.onclick = function() {
+        window.location.href = `/api/ai/download/docx/coverletter/${trackingId}`;
+      };
+    }
   }
-}
+
   resetAppBtn.addEventListener('click', () => {
     form.reset();
     appState.selectedFile = null;
@@ -358,52 +426,53 @@ function setupDownloadButtonsRoutingHooks(trackingId) {
     dropZone.querySelector('.space-y-2').classList.remove('hidden');
     Components.toggleView('input-view');
   });
+
   function compilePremiumCoverLetterHTML(cl) {
-  const paragraphs = Array.isArray(cl.bodyParagraphs) ? cl.bodyParagraphs : [];
-  const bodyParagraphsHTML = paragraphs
-    .map(p => `<p class="text-justify leading-relaxed text-slate-800 tracking-tight font-normal mb-4 text-xs sm:text-sm">${p}</p>`)
-    .join('');
+    const paragraphs = Array.isArray(cl.bodyParagraphs) ? cl.bodyParagraphs : [];
+    const bodyParagraphsHTML = paragraphs
+      .map(p => `<p class="text-justify leading-relaxed text-slate-800 tracking-tight font-normal mb-4 text-xs sm:text-sm">${p}</p>`)
+      .join('');
 
-  return `
-    <div class="bg-white text-slate-900 shadow-2xl rounded-sm border border-slate-200 relative mx-auto" 
-         style="width: 100%; max-width: 595px; min-height: 842px; padding: 50px 50px 50px 55px; font-family: 'Times New Roman', Times, serif; box-sizing: border-box;">
-      
-      <div class="absolute top-0 left-0 right-0 h-1 bg-indigo-600"></div>
-      
-      <div class="border-b border-slate-100 pb-3 mb-6 flex justify-between items-start">
-        <div class="space-y-0.5">
-          <h2 class="text-base font-bold tracking-wide uppercase text-slate-900 font-sans">${cl.senderName || 'Your Name'}</h2>
-          <p class="text-[11px] text-slate-500 font-sans tracking-tight">${cl.senderContact || ''}</p>
+    return `
+      <div class="bg-white text-slate-900 shadow-2xl rounded-sm border border-slate-200 relative mx-auto" 
+           style="width: 100%; max-width: 595px; min-height: 842px; padding: 50px 50px 50px 55px; font-family: 'Times New Roman', Times, serif; box-sizing: border-box;">
+        
+        <div class="absolute top-0 left-0 right-0 h-1 bg-indigo-600"></div>
+        
+        <div class="border-b border-slate-100 pb-3 mb-6 flex justify-between items-start">
+          <div class="space-y-0.5">
+            <h2 class="text-base font-bold tracking-wide uppercase text-slate-900 font-sans">${cl.senderName || 'Your Name'}</h2>
+            <p class="text-[11px] text-slate-500 font-sans tracking-tight">${cl.senderContact || ''}</p>
+          </div>
+          <div class="text-right font-sans text-[9px] font-bold text-slate-400 tracking-widest uppercase pt-1">
+            DIN 5008 Layout
+          </div>
         </div>
-        <div class="text-right font-sans text-[9px] font-bold text-slate-400 tracking-widest uppercase pt-1">
-          DIN 5008 Layout
+
+        <div class="mb-8 text-xs font-sans text-slate-700 space-y-0.5 max-w-sm">
+          <span class="text-[9px] font-bold tracking-wider text-indigo-500 uppercase block mb-1">Empfänger</span>
+          <div class="font-medium text-slate-900 bg-slate-50 border-l-2 border-slate-300 p-2.5 rounded-sm italic leading-tight">
+            ${cl.recipientCompany || 'Target Company Name'}
+          </div>
         </div>
-      </div>
 
-      <div class="mb-8 text-xs font-sans text-slate-700 space-y-0.5 max-w-sm">
-        <span class="text-[9px] font-bold tracking-wider text-indigo-500 uppercase block mb-1">Empfänger</span>
-        <div class="font-medium text-slate-900 bg-slate-50 border-l-2 border-slate-300 p-2.5 rounded-sm italic leading-tight">
-          ${cl.recipientCompany || 'Target Company Name'}
+        <div class="mb-5">
+          <h3 class="text-sm font-bold text-slate-900 font-sans tracking-tight leading-snug">
+            ${cl.subjectLine || 'Bewerbung'}
+          </h3>
         </div>
-      </div>
 
-      <div class="mb-5">
-        <h3 class="text-sm font-bold text-slate-900 font-sans tracking-tight leading-snug">
-          ${cl.subjectLine || 'Bewerbung'}
-        </h3>
-      </div>
-
-      <div class="space-y-3">
-        <p class="text-xs sm:text-sm font-bold text-slate-900 font-sans mb-3">${cl.salutation || 'Sehr geehrte Damen und Herren,'}</p>
-        <div class="font-serif">${bodyParagraphsHTML}</div>
-        <div class="pt-3 space-y-1 font-sans">
-          <p class="text-xs sm:text-sm text-slate-800">${cl.signOff || 'Mit freundlichen Grüßen'}</p>
-          <div class="pt-4">
-            <p class="text-xs sm:text-sm font-bold text-slate-900 border-t border-slate-200 pt-1 inline-block min-w-[140px]">${cl.senderName || ''}</p>
+        <div class="space-y-3">
+          <p class="text-xs sm:text-sm font-bold text-slate-900 font-sans mb-3">${cl.salutation || 'Sehr geehrte Damen und Herren,'}</p>
+          <div class="font-serif">${bodyParagraphsHTML}</div>
+          <div class="pt-3 space-y-1 font-sans">
+            <p class="text-xs sm:text-sm text-slate-800">${cl.signOff || 'Mit freundlichen Grüßen'}</p>
+            <div class="pt-4">
+              <p class="text-xs sm:text-sm font-bold text-slate-900 border-t border-slate-200 pt-1 inline-block min-w-[140px]">${cl.senderName || ''}</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
   }
 });
